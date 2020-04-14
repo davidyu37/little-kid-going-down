@@ -1,4 +1,8 @@
-var game = new Phaser.Game(400, 400, Phaser.AUTO, "", {
+const gameWidth = 800;
+const gameHeight = 800;
+const scale = 2;
+
+var game = new Phaser.Game(gameWidth, gameHeight, Phaser.AUTO, "", {
   preload: preload,
   create: create,
   update: update,
@@ -9,9 +13,9 @@ var keyboard;
 
 var platforms = [];
 
-var leftWall;
-var rightWall;
-var ceiling;
+var leftWalls = [];
+var rightWalls = [];
+var ceilings = [];
 
 var text1;
 var text2;
@@ -58,7 +62,7 @@ function update() {
   if (status != "running") return;
 
   this.physics.arcade.collide(player, platforms, effect);
-  this.physics.arcade.collide(player, [leftWall, rightWall]);
+  this.physics.arcade.collide(player, [...leftWalls, ...rightWalls]);
   checkTouchCeiling(player);
   checkGameOver();
 
@@ -70,15 +74,31 @@ function update() {
 }
 
 function createBounders() {
-  leftWall = game.add.sprite(0, 0, "wall");
-  game.physics.arcade.enable(leftWall);
-  leftWall.body.immovable = true;
+  const wallHeight = 400;
+  const numberOfWalls = Math.round(gameHeight / 400);
+  console.log(numberOfWalls);
+  for (let index = 0; index < numberOfWalls; index++) {
+    let leftWall = game.add.sprite(0, wallHeight * index, "wall");
+    game.physics.arcade.enable(leftWall);
+    leftWall.body.immovable = true;
 
-  rightWall = game.add.sprite(383, 0, "wall");
-  game.physics.arcade.enable(rightWall);
-  rightWall.body.immovable = true;
+    leftWalls.push(leftWall);
 
-  ceiling = game.add.image(0, 0, "ceiling");
+    let rightWall = game.add.sprite(gameWidth - 17, wallHeight * index, "wall");
+    game.physics.arcade.enable(rightWall);
+    rightWall.body.immovable = true;
+
+    rightWalls.push(rightWall);
+  }
+
+  const ceilingWidth = 400;
+  const numberOfCeilings = Math.round(gameWidth / ceilingWidth);
+
+  for (let index = 0; index < numberOfCeilings; index++) {
+    let ceiling = game.add.image(ceilingWidth * index, 0, "ceiling");
+    ceiling.scale.setTo(scale, scale);
+    ceilings.push(ceiling);
+  }
 }
 
 var lastTime = 0;
@@ -92,8 +112,8 @@ function createPlatforms() {
 
 function createOnePlatform() {
   var platform;
-  var x = Math.random() * (400 - 96 - 40) + 20;
-  var y = 400;
+  var x = Math.random() * (gameWidth - 96 * scale - 40 * scale) + 20 * scale;
+  var y = gameHeight;
   var rand = Math.random() * 100;
 
   if (rand < 20) {
@@ -119,6 +139,7 @@ function createOnePlatform() {
     platform.animations.add("turn", [0, 1, 2, 3, 4, 5, 0], 14);
   }
 
+  platform.scale.setTo(scale, scale);
   game.physics.arcade.enable(platform);
   platform.body.immovable = true;
   platforms.push(platform);
@@ -129,7 +150,8 @@ function createOnePlatform() {
 }
 
 function createPlayer() {
-  player = game.add.sprite(200, 50, "player");
+  player = game.add.sprite(gameWidth / 2, 50, "player");
+  player.scale.setTo(scale, scale);
   player.direction = 10;
   game.physics.arcade.enable(player);
   player.body.gravity.y = 500;
@@ -146,8 +168,13 @@ function createPlayer() {
 function createTextsBoard() {
   var style = { fill: "#ff0000", fontSize: "20px" };
   text1 = game.add.text(10, 10, "", style);
-  text2 = game.add.text(350, 10, "", style);
-  text3 = game.add.text(140, 200, "Enter 重新開始", style);
+  text2 = game.add.text(gameWidth - 50, 10, "", style);
+  text3 = game.add.text(
+    gameWidth / 2 - 60,
+    gameHeight / 2,
+    "Enter 重新開始",
+    style
+  );
   text3.visible = false;
 }
 
@@ -277,7 +304,7 @@ function checkTouchCeiling(player) {
 }
 
 function checkGameOver() {
-  if (player.life <= 0 || player.body.y > 500) {
+  if (player.life <= 0 || player.body.y > gameHeight + 100) {
     gameOver();
   }
 }
