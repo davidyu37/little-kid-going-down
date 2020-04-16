@@ -318,24 +318,25 @@ function effect(player, platform) {
 }
 
 function conveyorRightEffect(player, platform) {
-  if (platform.uuid !== currentPlatform) {
+  if (player.touchOn !== platform) {
     if (!conveyorSound.isPlaying) {
       conveyorSound.play();
     }
+    player.touchOn = platform;
   }
   player.body.x += 2;
 }
 
 function conveyorLeftEffect(player, platform) {
-  if (platform.uuid !== currentPlatform) {
-    if (!conveyorSound.isPlaying) {
-      conveyorSound.play();
-    }
+  if (player.touchOn !== platform) {
+    conveyorSound.play();
+    player.touchOn = platform;
   }
   player.body.x -= 2;
 }
 
 function trampolineEffect(player, platform) {
+  if (player.body.y > platform.body.y) return;
   if (!springSound.isPlaying) {
     springSound.play();
   }
@@ -346,10 +347,8 @@ function trampolineEffect(player, platform) {
 
 function nailsEffect(player, platform) {
   if (player.touchOn !== platform) {
-    if (platform.uuid !== currentPlatform) {
-      if (!stabbedSound.isPlaying) {
-        stabbedSound.play();
-      }
+    if (!stabbedSound.isPlaying) {
+      stabbedSound.play();
     }
     player.life -= 3;
     player.touchOn = platform;
@@ -368,10 +367,8 @@ function nailsEffect(player, platform) {
 
 function basicEffect(player, platform) {
   if (player.touchOn !== platform) {
-    if (platform.uuid !== currentPlatform) {
-      if (!platformSound.isPlaying) {
-        platformSound.play();
-      }
+    if (!platformSound.isPlaying) {
+      platformSound.play();
     }
     if (player.life < 10) {
       player.life += 1;
@@ -381,8 +378,9 @@ function basicEffect(player, platform) {
 }
 
 function fakeEffect(player, platform) {
+  if (player.body.y > platform.body.y) return;
   if (player.touchOn !== platform) {
-    if (platform.uuid !== currentPlatform) {
+    if (!spinSound.isPlaying) {
       spinSound.play();
     }
     platform.animations.play("turn");
@@ -429,7 +427,6 @@ function checkGameOver() {
 function gameOver() {
   text3.visible = true;
   isStabbedToDeath = false;
-  console.log("game over triggered");
   platforms.forEach(function (s) {
     s.destroy();
   });
