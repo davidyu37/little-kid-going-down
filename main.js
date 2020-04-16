@@ -25,7 +25,7 @@ var distance = 0;
 var status = "running";
 
 function preload() {
-  game.load.baseURL = "https://wacamoto.github.io/NS-Shaft-Tutorial/assets/";
+  game.load.baseURL = "./assets/";
   game.load.crossOrigin = "anonymous";
   game.load.spritesheet("player", "player.png", 32, 32);
   game.load.image("wall", "wall.png");
@@ -62,7 +62,11 @@ function update() {
   if (status != "running") return;
 
   this.physics.arcade.collide(player, platforms, effect);
-  this.physics.arcade.collide(player, [...leftWalls, ...rightWalls]);
+  this.physics.arcade.collide(player, [
+    ...leftWalls,
+    ...rightWalls,
+    ...ceilings,
+  ]);
   checkTouchCeiling(player);
   checkGameOver();
 
@@ -76,7 +80,6 @@ function update() {
 function createBounders() {
   const wallHeight = 400;
   const numberOfWalls = Math.round(gameHeight / 400);
-  console.log(numberOfWalls);
   for (let index = 0; index < numberOfWalls; index++) {
     let leftWall = game.add.sprite(0, wallHeight * index, "wall");
     game.physics.arcade.enable(leftWall);
@@ -95,15 +98,17 @@ function createBounders() {
   const numberOfCeilings = Math.round(gameWidth / ceilingWidth);
 
   for (let index = 0; index < numberOfCeilings; index++) {
-    let ceiling = game.add.image(ceilingWidth * index, 0, "ceiling");
+    let ceiling = game.add.sprite(ceilingWidth * index, 0, "ceiling");
     ceiling.scale.setTo(scale, scale);
+    game.physics.arcade.enable(ceiling);
+    ceiling.body.immovable = true;
     ceilings.push(ceiling);
   }
 }
 
 var lastTime = 0;
 function createPlatforms() {
-  if (game.time.now > lastTime + 600) {
+  if (game.time.now > lastTime + 1000) {
     lastTime = game.time.now;
     createOnePlatform();
     distance += 1;
@@ -116,37 +121,54 @@ function createOnePlatform() {
   var y = gameHeight;
   var rand = Math.random() * 100;
 
+  let platformType = "normal";
+
   if (rand < 20) {
     platform = game.add.sprite(x, y, "normal");
   } else if (rand < 40) {
     platform = game.add.sprite(x, y, "nails");
+    platformType = "nails";
     game.physics.arcade.enable(platform);
     platform.body.setSize(96, 15, 0, 15);
   } else if (rand < 50) {
     platform = game.add.sprite(x, y, "conveyorLeft");
+    platformType = "conveyorLeft";
     platform.animations.add("scroll", [0, 1, 2, 3], 16, true);
     platform.play("scroll");
   } else if (rand < 60) {
     platform = game.add.sprite(x, y, "conveyorRight");
+    platformType = "conveyorRight";
     platform.animations.add("scroll", [0, 1, 2, 3], 16, true);
     platform.play("scroll");
   } else if (rand < 80) {
     platform = game.add.sprite(x, y, "trampoline");
+    platformType = "trampoline";
     platform.animations.add("jump", [4, 5, 4, 3, 2, 1, 0, 1, 2, 3], 120);
     platform.frame = 3;
   } else {
     platform = game.add.sprite(x, y, "fake");
+    platformType = "fake";
     platform.animations.add("turn", [0, 1, 2, 3, 4, 5, 0], 14);
   }
 
   platform.scale.setTo(scale, scale);
   game.physics.arcade.enable(platform);
   platform.body.immovable = true;
-  platforms.push(platform);
+
+  // Offset collison box by 6 of y to actually touch the platform
+  if (platformType === "trampoline") {
+    platform.body.setSize(96, 22, 0, 6);
+  }
+
+  if (platformType === "fake") {
+    platform.body.setSize(96, 22, 0, 10);
+  }
 
   platform.body.checkCollision.down = false;
   platform.body.checkCollision.left = false;
   platform.body.checkCollision.right = false;
+
+  platforms.push(platform);
 }
 
 function createPlayer() {
@@ -154,7 +176,7 @@ function createPlayer() {
   player.scale.setTo(scale, scale);
   player.direction = 10;
   game.physics.arcade.enable(player);
-  player.body.gravity.y = 500;
+  player.body.gravity.y = 800;
   player.animations.add("left", [0, 1, 2, 3], 8);
   player.animations.add("right", [9, 10, 11, 12], 8);
   player.animations.add("flyleft", [18, 19, 20, 21], 12);
@@ -217,7 +239,7 @@ function updatePlatforms() {
   for (var i = 0; i < platforms.length; i++) {
     var platform = platforms[i];
     platform.body.position.y -= 2;
-    if (platform.body.position.y <= -20) {
+    if (platform.body.position.y <= -32) {
       platform.destroy();
       platforms.splice(i, 1);
     }
@@ -291,7 +313,7 @@ function fakeEffect(player, platform) {
 }
 
 function checkTouchCeiling(player) {
-  if (player.body.y < 0) {
+  if (player.body.y < 35) {
     if (player.body.velocity.y < 0) {
       player.body.velocity.y = 0;
     }
