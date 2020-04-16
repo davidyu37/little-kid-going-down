@@ -4,11 +4,107 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/phaser/2.6.2/phaser.js"></script>
   </head>
   <style>
+    body {
+      background-color: #030303;
+    }
     canvas {
       margin: auto;
+      border: 5px solid grey;
+      padding: 2px;
+    }
+
+    .scoreboard-holder {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .scoreboard {
+      width: 800px;
+      padding: 0.5rem 2rem;
+      display: flex;
+      flex-direction: row;
+      justify-content: space-between;
+    }
+
+    .life-text {
+      font-size: 2em;
+      font-family: Verdana, Geneva, Tahoma, sans-serif;
+      font-weight: bold;
+      background: -webkit-linear-gradient(#ffffff, #e90a04);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      -webkit-text-stroke-width: 1px;
+      -webkit-text-stroke-color: #e90a04;
+    }
+
+    .life-bar {
+      border: 1px solid #e90a04;
+      width: 200px;
+      height: 40px;
+      border-radius: 4px;
+      display: flex;
+      flex-direction: row;
+    }
+
+    .life-empy {
+      border: 1px solid #e90a04;
+      width: 20px;
+      height: 40px;
+    }
+
+    .life-active {
+      border: 1px solid #e90a04;
+      background-color: #fbf71c;
+      width: 20px;
+      height: 40px;
+      box-shadow: 0px 0px 15px 0px #fbf71c;
+    }
+
+    .score-wrapper {
+    }
+
+    .score-text {
+      background: -webkit-linear-gradient(#ffffff, #becf65);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      -webkit-text-stroke-width: 1px;
+      -webkit-text-stroke-color: #becf65;
+      font-size: 5em;
+      font-family: Impact, Haettenschweiler, "Arial Narrow Bold", sans-serif;
+      letter-spacing: 0.1em;
     }
   </style>
   <body>
+    <div class="scoreboard-holder">
+      <div class="scoreboard">
+        <div>
+          <div class="life-text">
+            LIFE
+          </div>
+          <div class="life-bar" id="life-bar">
+            <div class="life-active"></div>
+            <div class="life-active"></div>
+            <div class="life-active"></div>
+            <div class="life-active"></div>
+            <div class="life-active"></div>
+            <div class="life-active"></div>
+            <div class="life-active"></div>
+            <div class="life-active"></div>
+            <div class="life-active"></div>
+            <div class="life-active"></div>
+          </div>
+        </div>
+        <div class="score-wrapper">
+          <div class="score-text">
+            地下
+            <span id="score">0000</span>
+            階
+          </div>
+        </div>
+      </div>
+    </div>
     <script src="./main.js"></script>
   </body>
 </html>

@@ -38,6 +38,10 @@ let conveyorSound,
 
 let isStabbedToDeath = false;
 
+// Scoreboard elements
+const lifeBar = document.getElementById("life-bar");
+const score = document.getElementById("score");
+
 function preload() {
   game.load.baseURL = "./assets/";
   game.load.crossOrigin = "anonymous";
@@ -95,9 +99,33 @@ function update() {
 
   updatePlayer();
   updatePlatforms();
-  updateTextsBoard();
+  // updateTextsBoard();
 
   createPlatforms();
+  updateLifeBar();
+}
+
+function updateLifeBar() {
+  if (player.life <= 0) {
+    const boxes = Array.from(lifeBar.children);
+    boxes.forEach((elem) => {
+      elem.className = "life-empy";
+    });
+    return;
+  }
+  const currentLife = player.life;
+  const boxes = Array.from(lifeBar.children);
+
+  const actives = boxes.slice(0, currentLife);
+  const empties = boxes.slice(currentLife, boxes.length);
+
+  actives.forEach((elem) => {
+    elem.className = "life-active";
+  });
+
+  empties.forEach((elem) => {
+    elem.className = "life-empy";
+  });
 }
 
 function addAudio() {
@@ -111,6 +139,17 @@ function addAudio() {
 }
 
 function createBounders() {
+  const ceilingWidth = 400;
+  const numberOfCeilings = Math.round(gameWidth / ceilingWidth);
+
+  for (let index = 0; index < numberOfCeilings; index++) {
+    let ceiling = game.add.sprite(ceilingWidth * index, 0, "ceiling");
+    ceiling.scale.setTo(scale, scale);
+    game.physics.arcade.enable(ceiling);
+    ceiling.body.immovable = true;
+    ceilings.push(ceiling);
+  }
+
   const wallHeight = 400;
   const numberOfWalls = Math.round(gameHeight / 400);
   for (let index = 0; index < numberOfWalls; index++) {
@@ -126,17 +165,6 @@ function createBounders() {
 
     rightWalls.push(rightWall);
   }
-
-  const ceilingWidth = 400;
-  const numberOfCeilings = Math.round(gameWidth / ceilingWidth);
-
-  for (let index = 0; index < numberOfCeilings; index++) {
-    let ceiling = game.add.sprite(ceilingWidth * index, 0, "ceiling");
-    ceiling.scale.setTo(scale, scale);
-    game.physics.arcade.enable(ceiling);
-    ceiling.body.immovable = true;
-    ceilings.push(ceiling);
-  }
 }
 
 var lastTime = 0;
@@ -145,6 +173,7 @@ function createPlatforms() {
     lastTime = game.time.now;
     createOnePlatform();
     distance += 1;
+    score.innerHTML = distance;
   }
 }
 
@@ -233,8 +262,8 @@ function createPlayer() {
 
 function createTextsBoard() {
   var style = { fill: "#ff0000", fontSize: "20px" };
-  text1 = game.add.text(10, 10, "", style);
-  text2 = game.add.text(gameWidth - 50, 10, "", style);
+  // text1 = game.add.text(10, 10, "", style);
+  // text2 = game.add.text(gameWidth - 50, 10, "", style);
   text3 = game.add.text(
     gameWidth / 2 - 60,
     gameHeight / 2,
@@ -290,10 +319,10 @@ function updatePlatforms() {
   }
 }
 
-function updateTextsBoard() {
-  text1.setText("life:" + player.life);
-  text2.setText("B" + distance);
-}
+// function updateTextsBoard() {
+//   text1.setText("life:" + player.life);
+//   text2.setText("B" + distance);
+// }
 
 function effect(player, platform) {
   if (platform.key == "conveyorRight") {
