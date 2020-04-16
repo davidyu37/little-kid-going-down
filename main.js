@@ -24,6 +24,20 @@ var text3;
 var distance = 0;
 var status = "running";
 
+// Current Platform to keep track of the platform
+let currentPlatform;
+
+// Sounds
+let conveyorSound,
+  springSound,
+  fallSound,
+  platformSound,
+  spinSound,
+  stabbedSound,
+  stabbedScream;
+
+let isStabbedToDeath = false;
+
 function preload() {
   game.load.baseURL = "./assets/";
   game.load.crossOrigin = "anonymous";
@@ -36,6 +50,13 @@ function preload() {
   game.load.spritesheet("conveyorLeft", "conveyor_left.png", 96, 16);
   game.load.spritesheet("trampoline", "trampoline.png", 96, 22);
   game.load.spritesheet("fake", "fake.png", 96, 36);
+  game.load.audio("conveyor", "/sounds/Conveyor 1.mp3");
+  game.load.audio("spring", "/sounds/Spring 1.mp3");
+  game.load.audio("fall", "/sounds/Fall 2.mp3");
+  game.load.audio("platform", "/sounds/Platform 2.mp3");
+  game.load.audio("spin", "/sounds/Spin 2.mp3");
+  game.load.audio("stabbed", "/sounds/Stabbed.mp3");
+  game.load.audio("stabbedScream", "/sounds/Stabbed Scream.mp3");
 }
 
 function create() {
@@ -54,12 +75,14 @@ function create() {
   createBounders();
   createPlayer();
   createTextsBoard();
+  addAudio();
 }
 
 function update() {
   // bad
   if (status == "gameOver" && keyboard.enter.isDown) restart();
   if (status != "running") return;
+  if (isStabbedToDeath) return;
 
   this.physics.arcade.collide(player, platforms, effect);
   this.physics.arcade.collide(player, [
@@ -75,6 +98,16 @@ function update() {
   updateTextsBoard();
 
   createPlatforms();
+}
+
+function addAudio() {
+  conveyorSound = game.add.audio("conveyor");
+  springSound = game.add.audio("spring");
+  fallSound = game.add.audio("fall");
+  platformSound = game.add.audio("platform");
+  spinSound = game.add.audio("spin");
+  stabbedSound = game.add.audio("stabbed");
+  stabbedScream = game.add.audio("stabbedScream");
 }
 
 function createBounders() {
@@ -113,6 +146,14 @@ function createPlatforms() {
     createOnePlatform();
     distance += 1;
   }
+}
+
+function uuidv4() {
+  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function (c) {
+    var r = (Math.random() * 16) | 0,
+      v = c == "x" ? r : (r & 0x3) | 0x8;
+    return v.toString(16);
+  });
 }
 
 function createOnePlatform() {
@@ -167,6 +208,9 @@ function createOnePlatform() {
   platform.body.checkCollision.down = false;
   platform.body.checkCollision.left = false;
   platform.body.checkCollision.right = false;
+
+  // Assign uuid to each platform
+  platform.uuid = uuidv4();
 
   platforms.push(platform);
 }
@@ -270,31 +314,65 @@ function effect(player, platform) {
   if (platform.key == "fake") {
     fakeEffect(player, platform);
   }
+  currentPlatform = platform.uuid;
 }
 
 function conveyorRightEffect(player, platform) {
+  if (platform.uuid !== currentPlatform) {
+    if (!conveyorSound.isPlaying) {
+      conveyorSound.play();
+    }
+  }
   player.body.x += 2;
 }
 
 function conveyorLeftEffect(player, platform) {
+  if (platform.uuid !== currentPlatform) {
+    if (!conveyorSound.isPlaying) {
+      conveyorSound.play();
+    }
+  }
   player.body.x -= 2;
 }
 
 function trampolineEffect(player, platform) {
+  if (!springSound.isPlaying) {
+    springSound.play();
+  }
+
   platform.animations.play("jump");
   player.body.velocity.y = -350;
 }
 
 function nailsEffect(player, platform) {
   if (player.touchOn !== platform) {
+    if (platform.uuid !== currentPlatform) {
+      if (!stabbedSound.isPlaying) {
+        stabbedSound.play();
+      }
+    }
     player.life -= 3;
     player.touchOn = platform;
     game.camera.flash(0xff0000, 100);
+    if (player.life <= 0) {
+      if (!stabbedScream.isPlaying) {
+        stabbedScream.play();
+        isStabbedToDeath = true;
+        player.animations.stop();
+        player.body.gravity.y = 0;
+        setTimeout(gameOver, 1000);
+      }
+    }
   }
 }
 
 function basicEffect(player, platform) {
   if (player.touchOn !== platform) {
+    if (platform.uuid !== currentPlatform) {
+      if (!platformSound.isPlaying) {
+        platformSound.play();
+      }
+    }
     if (player.life < 10) {
       player.life += 1;
     }
@@ -304,6 +382,9 @@ function basicEffect(player, platform) {
 
 function fakeEffect(player, platform) {
   if (player.touchOn !== platform) {
+    if (platform.uuid !== currentPlatform) {
+      spinSound.play();
+    }
     platform.animations.play("turn");
     setTimeout(function () {
       platform.body.checkCollision.up = false;
@@ -317,22 +398,38 @@ function checkTouchCeiling(player) {
     if (player.body.velocity.y < 0) {
       player.body.velocity.y = 0;
     }
+
     if (game.time.now > player.unbeatableTime) {
+      stabbedSound.play();
       player.life -= 3;
       game.camera.flash(0xff0000, 100);
-      player.unbeatableTime = game.time.now + 2000;
+      player.unbeatableTime = game.time.now + 1000;
+      if (player.life <= 0) {
+        if (!stabbedScream.isPlaying) {
+          stabbedScream.play();
+          isStabbedToDeath = true;
+          player.animations.stop();
+          player.body.gravity.y = 0;
+          setTimeout(gameOver, 1000);
+        }
+      }
     }
   }
 }
 
 function checkGameOver() {
-  if (player.life <= 0 || player.body.y > gameHeight + 100) {
+  if (player.body.y > gameHeight + 100) {
+    fallSound.play();
     gameOver();
   }
+  //   if (player.life <= 0 || player.body.y > gameHeight + 100) {
+  //   }
 }
 
 function gameOver() {
   text3.visible = true;
+  isStabbedToDeath = false;
+  console.log("game over triggered");
   platforms.forEach(function (s) {
     s.destroy();
   });
@@ -342,6 +439,9 @@ function gameOver() {
 
 function restart() {
   text3.visible = false;
+  if (player) {
+    player.destroy();
+  }
   distance = 0;
   createPlayer();
   status = "running";
