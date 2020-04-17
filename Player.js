@@ -43,7 +43,7 @@ class Player {
   }
 
   update() {
-    game.physics.arcade.collide(this.player, platforms, effect);
+    game.physics.arcade.collide(this.player, platforms, this.effect.bind(this));
     game.physics.arcade.collide(this.player, [
       ...leftWalls,
       ...rightWalls,
@@ -51,8 +51,8 @@ class Player {
     ]);
 
     this.updatePlayer();
-    this.checkTouchCeiling();
-    this.checkGameOver();
+    this.checkNailCeiling();
+    this.checkFellPlayer();
 
     const rand = Math.random();
 
@@ -68,7 +68,7 @@ class Player {
 
   think() {}
 
-  checkTouchCeiling() {
+  checkNailCeiling() {
     if (this.player.body.y < 35) {
       if (this.player.body.velocity.y < 0) {
         this.player.body.velocity.y = 0;
@@ -79,22 +79,18 @@ class Player {
         this.player.life -= 3;
         game.camera.flash(0xff0000, 100);
         this.player.unbeatableTime = game.time.now + 1000;
-        if (this.player.life <= 0) {
-          if (!stabbedScream.isPlaying) {
-            stabbedScream.play();
-            // isStabbedToDeath = true;
-            // this.player.animations.stop();
-            // this.player.body.gravity.y = 0;
-            // setTimeout(gameOver, 1000);
-          }
+        if (this.player.life <= 0 && !this.dead) {
+          stabbedScream.play();
+          this.dead = true;
         }
       }
     }
   }
 
-  checkGameOver() {
-    if (this.player.body.y > gameHeight + 100) {
-      // fallSound.play();
+  checkFellPlayer() {
+    if (this.player.body.y > gameHeight + 100 && !this.dead) {
+      fallSound.play();
+      console.log("fell to death");
       this.dead = true;
 
       // gameOver();
@@ -110,7 +106,7 @@ class Player {
   }
 
   updatePlayer() {
-    setPlayerAnimate(this.player);
+    this.setPlayerAnimate(this.player);
   }
 
   setPlayerAnimate(player) {
@@ -134,6 +130,102 @@ class Player {
     }
     if (x == 0 && y == 0) {
       player.frame = 8;
+    }
+  }
+
+  conveyorRightEffect(player, platform) {
+    if (player.touchOn !== platform) {
+      if (!conveyorSound.isPlaying) {
+        conveyorSound.play();
+      }
+      player.touchOn = platform;
+    }
+    player.body.x += 2;
+  }
+
+  conveyorLeftEffect(player, platform) {
+    if (player.touchOn !== platform) {
+      conveyorSound.play();
+      player.touchOn = platform;
+    }
+    player.body.x -= 2;
+  }
+
+  trampolineEffect(player, platform) {
+    if (player.body.y > platform.body.y) return;
+    if (!springSound.isPlaying) {
+      springSound.play();
+    }
+
+    platform.animations.play("jump");
+    player.body.velocity.y = -350;
+  }
+
+  nailsEffect(player, platform) {
+    // So player doesn't get stabbed from the side
+    if (player.body.y > platform.body.y) return;
+    if (player.touchOn !== platform) {
+      if (!stabbedSound.isPlaying) {
+        stabbedSound.play();
+      }
+      player.life -= 3;
+      player.touchOn = platform;
+      game.camera.flash(0xff0000, 100);
+      if (player.life <= 0 && !this.dead) {
+        stabbedScream.play();
+        this.dead = true;
+      }
+    }
+  }
+
+  basicEffect(player, platform) {
+    if (player.touchOn !== platform) {
+      if (!platformSound.isPlaying) {
+        platformSound.play();
+      }
+      if (player.life < 10) {
+        player.life += 1;
+      }
+      player.touchOn = platform;
+    }
+  }
+
+  fakeEffect(player, platform) {
+    if (player.body.y > platform.body.y) return;
+    if (player.touchOn !== platform) {
+      if (!spinSound.isPlaying) {
+        spinSound.play();
+      }
+      platform.animations.play("turn");
+      setTimeout(function () {
+        platform.body.checkCollision.up = false;
+        setTimeout(() => {
+          platform.body.checkCollision.up = true;
+        }, 1000);
+      }, 100);
+      player.touchOn = platform;
+    }
+  }
+
+  // Effects
+  effect(player, platform) {
+    if (platform.key == "conveyorRight") {
+      this.conveyorRightEffect(player, platform);
+    }
+    if (platform.key == "conveyorLeft") {
+      this.conveyorLeftEffect(player, platform);
+    }
+    if (platform.key == "trampoline") {
+      this.trampolineEffect(player, platform);
+    }
+    if (platform.key == "nails") {
+      this.nailsEffect(player, platform);
+    }
+    if (platform.key == "normal") {
+      this.basicEffect(player, platform);
+    }
+    if (platform.key == "fake") {
+      this.fakeEffect(player, platform);
     }
   }
 }
