@@ -8,7 +8,7 @@ var game = new Phaser.Game(gameWidth, gameHeight, Phaser.AUTO, "", {
   update: update,
 });
 
-var player;
+// var player;
 var keyboard;
 
 var platforms = [];
@@ -37,6 +37,9 @@ let conveyorSound,
   stabbedScream;
 
 let isStabbedToDeath = false;
+
+// Genetic Algothrithm Stuff
+let population;
 
 // Scoreboard elements
 const lifeBar = document.getElementById("life-bar");
@@ -77,9 +80,13 @@ function create() {
   });
 
   createBounders();
-  createPlayer();
-  createTextsBoard();
   addAudio();
+
+  // Create population
+  population = new Population(10);
+
+  // createPlayer();
+  // createTextsBoard();
 }
 
 function update() {
@@ -88,21 +95,23 @@ function update() {
   if (status != "running") return;
   if (isStabbedToDeath) return;
 
-  this.physics.arcade.collide(player, platforms, effect);
-  this.physics.arcade.collide(player, [
-    ...leftWalls,
-    ...rightWalls,
-    ...ceilings,
-  ]);
-  checkTouchCeiling(player);
-  checkGameOver();
+  population.update();
 
-  updatePlayer();
+  // this.physics.arcade.collide(population.players, platforms, effect);
+  // this.physics.arcade.collide(population.players, [
+  //   ...leftWalls,
+  //   ...rightWalls,
+  //   ...ceilings,
+  // ]);
+  // checkTouchCeiling(player);
+  // checkGameOver();
+
+  // updatePlayer();
   updatePlatforms();
   // updateTextsBoard();
 
   createPlatforms();
-  updateLifeBar();
+  // updateLifeBar();
 }
 
 function updateLifeBar() {
@@ -273,16 +282,16 @@ function createTextsBoard() {
   text3.visible = false;
 }
 
-function updatePlayer() {
-  if (keyboard.left.isDown) {
-    player.body.velocity.x = -250;
-  } else if (keyboard.right.isDown) {
-    player.body.velocity.x = 250;
-  } else {
-    player.body.velocity.x = 0;
-  }
-  setPlayerAnimate(player);
-}
+// function updatePlayer() {
+//   if (keyboard.left.isDown) {
+//     player.body.velocity.x = -250;
+//   } else if (keyboard.right.isDown) {
+//     player.body.velocity.x = 250;
+//   } else {
+//     player.body.velocity.x = 0;
+//   }
+//   setPlayerAnimate(player);
+// }
 
 function setPlayerAnimate(player) {
   var x = player.body.velocity.x;
@@ -451,8 +460,6 @@ function checkGameOver() {
     fallSound.play();
     gameOver();
   }
-  //   if (player.life <= 0 || player.body.y > gameHeight + 100) {
-  //   }
 }
 
 function gameOver() {
@@ -471,6 +478,6 @@ function restart() {
     player.destroy();
   }
   distance = 0;
-  createPlayer();
+  // createPlayer();
   status = "running";
 }
