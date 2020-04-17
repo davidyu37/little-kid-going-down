@@ -375,6 +375,8 @@ function trampolineEffect(player, platform) {
 }
 
 function nailsEffect(player, platform) {
+  // So player doesn't get stabbed from the side
+  if (player.body.y > platform.body.y) return;
   if (player.touchOn !== platform) {
     if (!stabbedSound.isPlaying) {
       stabbedSound.play();
