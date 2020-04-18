@@ -14,10 +14,10 @@ class Population {
 
     for (var i = 0; i < size; i++) {
       this.players.push(new Player());
-      //   this.players[this.players.length - 1].brain.mutate(
-      //     this.innovationHistory
-      //   );
-      //   this.players[this.players.length - 1].brain.generateNetwork();
+      this.players[this.players.length - 1].brain.fullyConnect(
+        this.innovationHistory
+      );
+      this.players[this.players.length - 1].brain.generateNetwork();
     }
   }
 
@@ -34,7 +34,7 @@ class Population {
       if (!this.players[i].dead) {
         aliveCount++;
         this.players[i].look(); //get inputs for brain
-        //   this.players[i].think(); //use outputs from neural network
+        this.players[i].think(); //use outputs from neural network
         this.players[i].update(); //move the player according to the outputs from the neural network
       }
     }
@@ -178,11 +178,26 @@ class Population {
       this.solutionFound = true;
     }
   }
-
-  increaseMoves() {
-    if (this.players[0].brain.directions.length < 120 && !this.solutionFound) {
-      for (var i = 0; i < this.players.length; i++) {
-        this.players[i].brain.increaseMoves();
+  speciate() {
+    for (var s of this.species) {
+      //empty this.species
+      s.players = [];
+    }
+    for (var i = 0; i < this.players.length; i++) {
+      //for each player
+      var speciesFound = false;
+      for (var s of this.species) {
+        //for each this.species
+        if (s.sameSpecies(this.players[i].brain)) {
+          //if the player is similar enough to be considered in the same this.species
+          s.addToSpecies(this.players[i]); //add it to the this.species
+          speciesFound = true;
+          break;
+        }
+      }
+      if (!speciesFound) {
+        //if no this.species was similar enough then add a new this.species with this as its champion
+        this.species.push(new Species(this.players[i]));
       }
     }
   }

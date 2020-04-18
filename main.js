@@ -40,6 +40,7 @@ let isStabbedToDeath = false;
 
 // Genetic Algothrithm Stuff
 let population;
+let nextConnectionNo = 1000;
 
 // Scoreboard elements
 const lifeBar = document.getElementById("life-bar");

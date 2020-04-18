@@ -1,27 +1,76 @@
-class Node { //used to define short term goals for the players 
-  //------------------------------------------------------------------------------------------------------------------------------
-  constructor(nodeTile) {
-    this.reached = false;
-    this.distToFinish = 0.0;
-    this.pos = createVector(nodeTile.pixelPos.x, nodeTile.pixelPos.y);
-    this.w =  tileSize;
-    this.h =  tileSize;
-    this.bottomRight = createVector(this.pos.x + this.w, this.pos.y + this.h);
+class Node {
+  constructor(no) {
+    this.number = no;
+    this.inputSum = 0; //current sum i.e. before activation
+    this.outputValue = 0; //after activation function is applied
+    this.outputConnections = []; //new ArrayList<connectionGene>();
+    this.layer = 0;
+    // this.drawPos = createVector();
   }
-  //------------------------------------------------------------------------------------------------------------------------------
-   collision( ptl,  pbr) {//player dimensions
-    if ((ptl.x <this.bottomRight.x && pbr.x > this.pos.x) &&( ptl.y < this.bottomRight.y && pbr.y > this.pos.y)) {
-      this.reached = true;
-      return true;
-    }else if(pbr.x < this.pos.x){
-      this.reached = false;
 
+  //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+  //the node sends its output to the inputs of the nodes its connected to
+  engage() {
+    if (this.layer != 0) {
+      //no sigmoid for the inputs and bias
+      this.outputValue = this.sigmoid(this.inputSum);
     }
+
+    for (var i = 0; i < this.outputConnections.length; i++) {
+      //for each connection
+      if (this.outputConnections[i].enabled) {
+        //dont do shit if not enabled
+        this.outputConnections[i].toNode.inputSum +=
+          this.outputConnections[i].weight * this.outputValue; //add the weighted output to the sum of the inputs of whatever node this node is connected to
+      }
+    }
+  }
+  //----------------------------------------------------------------------------------------------------------------------------------------
+  //not used
+  stepFunction(x) {
+    if (x < 0) {
+      return 0;
+    } else {
+      return 1;
+    }
+  }
+  //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+  //sigmoid activation function
+  sigmoid(x) {
+    // return 1.0 / (1.0 + pow(Math.E, -4.9 * x)); //todo check pow
+    return 1 / (1 + Math.exp(-x)); // Sigmoid function in pure javascript: https://github.com/howion/activation-functions/blob/master/lib/index.js
+  }
+  //----------------------------------------------------------------------------------------------------------------------------------------------------------
+  //returns whether this node connected to the parameter node
+  //used when adding a new connection
+  isConnectedTo(node) {
+    if (node.layer == this.layer) {
+      //nodes in the same this.layer cannot be connected
+      return false;
+    }
+
+    //you get it
+    if (node.layer < this.layer) {
+      for (var i = 0; i < node.outputConnections.length; i++) {
+        if (node.outputConnections[i].toNode == this) {
+          return true;
+        }
+      }
+    } else {
+      for (var i = 0; i < this.outputConnections.length; i++) {
+        if (this.outputConnections[i].toNode == node) {
+          return true;
+        }
+      }
+    }
+
     return false;
   }
-//------------------------------------------------------------------------------------------------------------------------------
-  //set the distance to finish by adding the distance to the finish for the node n plus the distance from this node to node n
-  setDistanceToFinish(n) {
-    this.distToFinish = n.distToFinish + dist(this.pos.x, this.pos.y, n.pos.x, n.pos.y);
+  //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+  //returns a copy of this node
+  clone() {
+    var clone = new Node(this.number);
+    clone.layer = this.layer;
+    return clone;
   }
 }

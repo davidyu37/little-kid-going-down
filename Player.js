@@ -26,6 +26,8 @@ class Player {
     this.score = 0;
     this.gen = 0;
 
+    this.moveState = 0; // 0 = not moving, 1 = move left, 2 = move right
+
     // NEAT
     // this.fitness = 0;
     // this.vision = []; //the input array fed into the neuralNet
@@ -37,9 +39,9 @@ class Player {
     // this.score = 0;
     // this.gen = 0;
 
-    // this.genomeInputs = 4;
-    // this.genomeOutputs = 1;
-    // this.brain = new Genome(this.genomeInputs, this.genomeOutputs);
+    this.genomeInputs = 5;
+    this.genomeOutputs = 3;
+    this.brain = new Genome(this.genomeInputs, this.genomeOutputs);
   }
 
   update() {
@@ -53,15 +55,6 @@ class Player {
     this.updatePlayer();
     this.checkNailCeiling();
     this.checkFellPlayer();
-
-    const rand = Math.random();
-
-    if (rand < 0.4) {
-      this.goLeft();
-    }
-    if (rand > 0.6) {
-      this.goRight();
-    }
   }
 
   normalize(input, base) {
@@ -115,7 +108,60 @@ class Player {
     // console.log(this.vision);
   }
 
-  think() {}
+  think() {
+    this.decision = this.brain.feedForward(this.vision);
+    console.log(this.decision);
+
+    let max = 0;
+    let maxIndex = 0;
+
+    for (let i = 0; i < this.decision.length; i++) {
+      if (this.decision[i] > max) {
+        max = this.decision[i];
+        maxIndex = i;
+      }
+    }
+
+    if (max < 0.6) {
+      // Stop
+      this.stopMoving();
+    }
+
+    switch (maxIndex) {
+      case 0:
+        if (this.moveState == 0) {
+          return;
+        }
+        // Stop Moving
+        this.stopMoving();
+        this.moveState = 0;
+        break;
+      case 1:
+        if (this.moveState == 1) {
+          return;
+        }
+        this.goLeft();
+        this.moveState = 1;
+        break;
+      case 2:
+        if (this.moveState == 2) {
+          return;
+        }
+        this.goRight();
+        this.moveState = 2;
+        break;
+    }
+
+    // Just Move Randomly
+    // const rand = Math.random();
+
+    // if (rand < 0.4) {
+    //   this.goLeft();
+    // }
+    // if (rand > 0.6) {
+    //   this.goRight();
+    // }
+  }
 
   checkNailCeiling() {
     if (this.player.body.y < 35) {
@@ -144,6 +190,10 @@ class Player {
 
       // gameOver();
     }
+  }
+
+  stopMoving() {
+    this.player.body.velocity.x = 0;
   }
 
   goLeft() {

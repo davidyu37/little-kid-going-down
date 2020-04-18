@@ -36,6 +36,8 @@ class Genome {
   fullyConnect(innovationHistory) {
     //this will be a new number if no identical genome has mutated in the same
 
+    console.log("fullyConnect");
+
     for (var i = 0; i < this.inputs; i++) {
       for (var j = 0; j < this.outputs; j++) {
         var connectionInnovationNumber = this.getInnovationNumber(
@@ -328,11 +330,6 @@ class Genome {
       }
 
       //then add this mutation to the innovationHistory
-      // console.log(from);
-      // console.log(to);
-      // console.log(connectionInnovationNumber);
-      // console.log(innoNumbers);
-      // console.log(this.genes);
       innovationHistory.push(
         new connectionHistory(
           from.number,
@@ -377,9 +374,6 @@ class Genome {
       return true;
     }
 
-    //console.log(this.genes.length);
-    //console.log(maxConnections);
-    //console.log(nodesInLayers);
     return false;
   }
 
@@ -551,100 +545,100 @@ class Genome {
   }
   //----------------------------------------------------------------------------------------------------------------------------------------
   //draw the genome on the screen
-  drawGenome(startX, startY, w, h) {
-    //i know its ugly but it works (and is not that important) so I'm not going to mess with it
-    var allNodes = []; //new ArrayList<ArrayList<Node>>();
-    var nodePoses = []; // new ArrayList<PVector>();
-    var nodeNumbers = []; // new ArrayList<Integer>();
+  //   drawGenome(startX, startY, w, h) {
+  //     //i know its ugly but it works (and is not that important) so I'm not going to mess with it
+  //     var allNodes = []; //new ArrayList<ArrayList<Node>>();
+  //     var nodePoses = []; // new ArrayList<PVector>();
+  //     var nodeNumbers = []; // new ArrayList<Integer>();
 
-    //get the positions on the screen that each node is supposed to be in
+  //     //get the positions on the screen that each node is supposed to be in
 
-    //split the this.nodes varo layers
-    for (var i = 0; i < this.layers; i++) {
-      var temp = []; // new ArrayList<Node>();
-      for (var j = 0; j < this.nodes.length; j++) {
-        //for each node
-        if (this.nodes[j].layer == i) {
-          //check if it is in this layer
-          temp.push(this.nodes[j]); //add it to this layer
-        }
-      }
-      allNodes.push(temp); //add this layer to all this.nodes
-    }
+  //     //split the this.nodes varo layers
+  //     for (var i = 0; i < this.layers; i++) {
+  //       var temp = []; // new ArrayList<Node>();
+  //       for (var j = 0; j < this.nodes.length; j++) {
+  //         //for each node
+  //         if (this.nodes[j].layer == i) {
+  //           //check if it is in this layer
+  //           temp.push(this.nodes[j]); //add it to this layer
+  //         }
+  //       }
+  //       allNodes.push(temp); //add this layer to all this.nodes
+  //     }
 
-    //for each layer add the position of the node on the screen to the node posses arraylist
-    for (var i = 0; i < this.layers; i++) {
-      fill(255, 0, 0);
-      var x = startX + float((i + 1.0) * w) / float(this.layers + 1.0);
-      for (var j = 0; j < allNodes[i].length; j++) {
-        //for the position in the layer
-        var y = startY + float((j + 1.0) * h) / float(allNodes[i].length + 1.0);
-        nodePoses.push(createVector(x, y));
-        nodeNumbers.push(allNodes[i][j].number);
-      }
-    }
+  //     //for each layer add the position of the node on the screen to the node posses arraylist
+  //     for (var i = 0; i < this.layers; i++) {
+  //       fill(255, 0, 0);
+  //       var x = startX + float((i + 1.0) * w) / float(this.layers + 1.0);
+  //       for (var j = 0; j < allNodes[i].length; j++) {
+  //         //for the position in the layer
+  //         var y = startY + float((j + 1.0) * h) / float(allNodes[i].length + 1.0);
+  //         nodePoses.push(createVector(x, y));
+  //         nodeNumbers.push(allNodes[i][j].number);
+  //       }
+  //     }
 
-    //draw connections
-    stroke(0);
-    strokeWeight(2);
-    for (var i = 0; i < this.genes.length; i++) {
-      if (this.genes[i].enabled) {
-        stroke(0);
-      } else {
-        stroke(100);
-      }
-      var from;
-      var to;
-      from = nodePoses[nodeNumbers.indexOf(this.genes[i].fromNode.number)];
-      to = nodePoses[nodeNumbers.indexOf(this.genes[i].toNode.number)];
-      if (this.genes[i].weight > 0) {
-        stroke(255, 0, 0);
-      } else {
-        stroke(0, 0, 255);
-      }
-      strokeWeight(map(abs(this.genes[i].weight), 0, 1, 0, 3));
-      line(from.x, from.y, to.x, to.y);
-    }
+  //     //draw connections
+  //     stroke(0);
+  //     strokeWeight(2);
+  //     for (var i = 0; i < this.genes.length; i++) {
+  //       if (this.genes[i].enabled) {
+  //         stroke(0);
+  //       } else {
+  //         stroke(100);
+  //       }
+  //       var from;
+  //       var to;
+  //       from = nodePoses[nodeNumbers.indexOf(this.genes[i].fromNode.number)];
+  //       to = nodePoses[nodeNumbers.indexOf(this.genes[i].toNode.number)];
+  //       if (this.genes[i].weight > 0) {
+  //         stroke(255, 0, 0);
+  //       } else {
+  //         stroke(0, 0, 255);
+  //       }
+  //       strokeWeight(map(abs(this.genes[i].weight), 0, 1, 0, 3));
+  //       line(from.x, from.y, to.x, to.y);
+  //     }
 
-    //draw this.nodes last so they appear ontop of the connection lines
-    for (var i = 0; i < nodePoses.length; i++) {
-      fill(255);
-      stroke(0);
-      strokeWeight(1);
-      ellipse(nodePoses[i].x, nodePoses[i].y, 20, 20);
-      textSize(10);
-      fill(0);
-      textAlign(CENTER, CENTER);
-      text(nodeNumbers[i], nodePoses[i].x, nodePoses[i].y);
-    }
+  //     //draw this.nodes last so they appear ontop of the connection lines
+  //     for (var i = 0; i < nodePoses.length; i++) {
+  //       fill(255);
+  //       stroke(0);
+  //       strokeWeight(1);
+  //       ellipse(nodePoses[i].x, nodePoses[i].y, 20, 20);
+  //       textSize(10);
+  //       fill(0);
+  //       textAlign(CENTER, CENTER);
+  //       text(nodeNumbers[i], nodePoses[i].x, nodePoses[i].y);
+  //     }
 
-    textAlign(RIGHT);
-    fill(255);
-    textSize(15);
-    noStroke();
-    text("car angle", nodePoses[0].x - 20, nodePoses[0].y);
-    text("touching ground", nodePoses[1].x - 20, nodePoses[1].y);
-    text("angular velocity", nodePoses[2].x - 20, nodePoses[2].y);
-    text("Distance to ground", nodePoses[3].x - 20, nodePoses[3].y);
-    text("gradient", nodePoses[4].x - 20, nodePoses[4].y);
-    text("bias", nodePoses[5].x - 20, nodePoses[5].y);
-    // text("ground point 1", nodePoses[6].x - 20, nodePoses[6].y);
-    // text("ground point 2", nodePoses[7].x - 20, nodePoses[7].y);
-    // text("ground point 3", nodePoses[8].x - 20, nodePoses[8].y);
-    // text("ground point 4", nodePoses[9].x - 20, nodePoses[9].y);
-    // text("ground point 5", nodePoses[10].x - 20, nodePoses[10].y);
-    // text("bias", nodePoses[11].x - 20, nodePoses[11].y);
-    //
-    textAlign(LEFT);
-    text(
-      "gas",
-      nodePoses[nodePoses.length - 2].x + 20,
-      nodePoses[nodePoses.length - 2].y
-    );
-    text(
-      "break",
-      nodePoses[nodePoses.length - 1].x + 20,
-      nodePoses[nodePoses.length - 1].y
-    );
-  }
+  //     textAlign(RIGHT);
+  //     fill(255);
+  //     textSize(15);
+  //     noStroke();
+  //     text("car angle", nodePoses[0].x - 20, nodePoses[0].y);
+  //     text("touching ground", nodePoses[1].x - 20, nodePoses[1].y);
+  //     text("angular velocity", nodePoses[2].x - 20, nodePoses[2].y);
+  //     text("Distance to ground", nodePoses[3].x - 20, nodePoses[3].y);
+  //     text("gradient", nodePoses[4].x - 20, nodePoses[4].y);
+  //     text("bias", nodePoses[5].x - 20, nodePoses[5].y);
+  //     // text("ground point 1", nodePoses[6].x - 20, nodePoses[6].y);
+  //     // text("ground point 2", nodePoses[7].x - 20, nodePoses[7].y);
+  //     // text("ground point 3", nodePoses[8].x - 20, nodePoses[8].y);
+  //     // text("ground point 4", nodePoses[9].x - 20, nodePoses[9].y);
+  //     // text("ground point 5", nodePoses[10].x - 20, nodePoses[10].y);
+  //     // text("bias", nodePoses[11].x - 20, nodePoses[11].y);
+  //     //
+  //     textAlign(LEFT);
+  //     text(
+  //       "gas",
+  //       nodePoses[nodePoses.length - 2].x + 20,
+  //       nodePoses[nodePoses.length - 2].y
+  //     );
+  //     text(
+  //       "break",
+  //       nodePoses[nodePoses.length - 1].x + 20,
+  //       nodePoses[nodePoses.length - 1].y
+  //     );
+  //   }
 }
