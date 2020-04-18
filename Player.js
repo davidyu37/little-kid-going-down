@@ -64,7 +64,56 @@ class Player {
     }
   }
 
-  look() {}
+  normalize(input, base) {
+    // Make the number 0 to 1
+    let div = input / base;
+
+    if (div > 1) {
+      div = 1;
+    }
+
+    if (div < -1) {
+      div = -1;
+    }
+
+    return div;
+  }
+
+  look() {
+    this.vision = [];
+    // Things the AI will "see"
+    // player's x position
+    // player's y position
+    // most bottom platform's x position
+    // most bottom platform's y position
+    // most bottom platform's x position + platform's width
+    let { x: playerX, y: playerY } = this.player;
+    const freshPlatform = platforms[platforms.length - 1];
+
+    // If no platform appears yet, use these values
+    let platformX = gameWidth / 2,
+      platformY = gameHeight,
+      platformEnd = platformX + 192;
+
+    if (freshPlatform) {
+      const { x, y, width } = freshPlatform;
+
+      platformX = x;
+      platformY = y;
+      platformEnd = x + width;
+    }
+
+    // Normalize data
+    platformX = this.normalize(platformX, gameWidth);
+    platformY = this.normalize(platformY, gameHeight);
+    platformEnd = this.normalize(platformEnd, gameWidth);
+    playerX = this.normalize(playerX, gameWidth);
+    playerY = this.normalize(playerY, gameHeight);
+
+    this.vision.push(playerX, playerY, platformX, platformY, platformEnd);
+
+    // console.log(this.vision);
+  }
 
   think() {}
 

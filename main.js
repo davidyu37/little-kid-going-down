@@ -87,6 +87,9 @@ function create() {
 
   // createPlayer();
   // createTextsBoard();
+
+  // Mute the screaming kids
+  game.sound.mute = true;
 }
 
 function update() {
