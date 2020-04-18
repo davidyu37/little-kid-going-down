@@ -17,7 +17,7 @@ class Species {
       //since it is the only one in the species it is by default the best
       this.bestFitness = p.fitness;
       this.rep = p.brain.clone();
-      this.champ = p.cloneForReplay();
+      //   this.champ = p.cloneForReplay();
     }
   }
 
@@ -73,7 +73,9 @@ class Species {
       for (var j = 0; j < brain2.genes.length; j++) {
         if (brain1.genes[i].innovationNo == brain2.genes[j].innovationNo) {
           matching++;
-          totalDiff += abs(brain1.genes[i].weight - brain2.genes[j].weight);
+          totalDiff += Math.abs(
+            brain1.genes[i].weight - brain2.genes[j].weight
+          );
           break;
         }
       }

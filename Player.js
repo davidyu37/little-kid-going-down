@@ -18,26 +18,14 @@ class Player {
     this.fitness = 0;
     this.vision = []; //the input array fed into the neuralNet
     this.decision = []; //the out put of the NN
+    this.dead = false;
+    this.score = 0;
     this.unadjustedFitness;
     this.lifespan = 0; //how long the player lived for this.fitness
     this.bestScore = 0; //stores the this.score achieved used for replay
-    this.dead = false;
-    this.kindaDead = false; //this is true when the player has died but deadcount isn't up
-    this.score = 0;
     this.gen = 0;
 
     this.moveState = 0; // 0 = not moving, 1 = move left, 2 = move right
-
-    // NEAT
-    // this.fitness = 0;
-    // this.vision = []; //the input array fed into the neuralNet
-    // this.decision = []; //the out put of the NN
-    // this.unadjustedFitness;
-    // this.lifespan = 0; //how long the player lived for this.fitness
-    // this.bestScore = 0; //stores the this.score achieved used for replay
-    // this.dead = false;
-    // this.score = 0;
-    // this.gen = 0;
 
     this.genomeInputs = 5;
     this.genomeOutputs = 3;
@@ -52,9 +40,12 @@ class Player {
       ...ceilings,
     ]);
 
-    this.updatePlayer();
-    this.checkNailCeiling();
-    this.checkFellPlayer();
+    if (!this.dead) {
+      this.score = distance;
+      this.updatePlayer();
+      this.checkNailCeiling();
+      this.checkFellPlayer();
+    }
   }
 
   normalize(input, base) {
@@ -109,8 +100,18 @@ class Player {
   }
 
   think() {
+    // Just Move Randomly
+    // const rand = Math.random();
+
+    // if (rand < 0.4) {
+    //   this.goLeft();
+    // }
+    // if (rand > 0.6) {
+    //   this.goRight();
+    // }
+    // return;
+
     this.decision = this.brain.feedForward(this.vision);
-    console.log(this.decision);
 
     let max = 0;
     let maxIndex = 0;
@@ -124,7 +125,8 @@ class Player {
 
     if (max < 0.6) {
       // Stop
-      this.stopMoving();
+      return;
+      // this.stopMoving();
     }
 
     switch (maxIndex) {
@@ -151,16 +153,10 @@ class Player {
         this.moveState = 2;
         break;
     }
+  }
 
-    // Just Move Randomly
-    // const rand = Math.random();
-
-    // if (rand < 0.4) {
-    //   this.goLeft();
-    // }
-    // if (rand > 0.6) {
-    //   this.goRight();
-    // }
+  calculateFitness() {
+    this.fitness = 1 + this.score * this.score + this.player.life / 20.0;
   }
 
   checkNailCeiling() {
@@ -190,6 +186,17 @@ class Player {
 
       // gameOver();
     }
+  }
+
+  clone() {
+    var clone = new Player();
+    clone.brain = this.brain.clone();
+    clone.fitness = this.fitness;
+    clone.brain.generateNetwork();
+    clone.gen = this.gen;
+    clone.bestScore = this.score;
+
+    return clone;
   }
 
   stopMoving() {

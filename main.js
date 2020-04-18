@@ -17,12 +17,8 @@ var leftWalls = [];
 var rightWalls = [];
 var ceilings = [];
 
-var text1;
-var text2;
-var text3;
-
 var distance = 0;
-var status = "running";
+var status = "loading";
 
 // Current Platform to keep track of the platform
 let currentPlatform;
@@ -35,8 +31,6 @@ let conveyorSound,
   spinSound,
   stabbedSound,
   stabbedScream;
-
-let isStabbedToDeath = false;
 
 // Genetic Algothrithm Stuff
 let population;
@@ -96,9 +90,14 @@ function create() {
 function update() {
   // bad
   if (status == "gameOver" && keyboard.enter.isDown) restart();
-  if (status != "running") return;
-  if (isStabbedToDeath) return;
+  if (status != "loading") return;
 
+  if (population.done()) {
+    // Restart because this generation all died
+    console.log("dead");
+    restart();
+    return;
+  }
   population.update();
 
   updatePlatforms();
@@ -267,11 +266,11 @@ function gameOver() {
 }
 
 function restart() {
-  text3.visible = false;
-  if (player) {
-    player.destroy();
-  }
+  status = "loading";
+  platforms.forEach(function (s) {
+    s.destroy();
+  });
+  platforms = [];
   distance = 0;
-  // createPlayer();
-  status = "running";
+  population.naturalSelection();
 }
