@@ -34,7 +34,6 @@ let conveyorSound,
 
 // Genetic Algothrithm Stuff
 let population;
-let nextConnectionNo = 1000;
 
 // Scoreboard elements
 const lifeBar = document.getElementById("life-bar");
@@ -78,7 +77,7 @@ function create() {
   addAudio();
 
   // Create population
-  population = new Population(10);
+  population = new Population(100);
 
   // createPlayer();
   // createTextsBoard();

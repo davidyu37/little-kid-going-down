@@ -1,76 +1,103 @@
+var activationsNames = ["Sigmoid", "Identity", "Step", "Tanh", "ReLu"]; //Used in the svg drawing
+
+//The Node Class
+//This is where math appends
 class Node {
-  constructor(no) {
-    this.number = no;
-    this.inputSum = 0; //current sum i.e. before activation
-    this.outputValue = 0; //after activation function is applied
-    this.outputConnections = []; //new ArrayList<connectionGene>();
-    this.layer = 0;
-    // this.drawPos = createVector();
+  constructor(num, lay, isOutput) {
+    this.number = num;
+    this.layer = lay;
+    this.activationFunction = Math.floor(Math.random() * 5); //Number between 0 and 4
+    this.bias = Math.random() * 2 - 1;
+    this.output = isOutput || false; //is this node an Output node?
+
+    this.inputSum = 0;
+    this.outputValue = 0;
+    this.outputConnections = [];
   }
 
-  //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-  //the node sends its output to the inputs of the nodes its connected to
   engage() {
-    if (this.layer != 0) {
-      //no sigmoid for the inputs and bias
-      this.outputValue = this.sigmoid(this.inputSum);
-    }
+    //Pass down the network the calculated output value
+    if (this.layer != 0)
+      //No activation function on input nodes
+      this.outputValue = this.activation(this.inputSum + this.bias);
 
-    for (var i = 0; i < this.outputConnections.length; i++) {
-      //for each connection
-      if (this.outputConnections[i].enabled) {
-        //dont do shit if not enabled
-        this.outputConnections[i].toNode.inputSum +=
-          this.outputConnections[i].weight * this.outputValue; //add the weighted output to the sum of the inputs of whatever node this node is connected to
-      }
-    }
+    this.outputConnections.forEach((conn) => {
+      if (conn.enabled)
+        //Do not pass value if connection is disabled
+        conn.toNode.inputSum += conn.weight * this.outputValue; //Weighted output sum
+    });
   }
-  //----------------------------------------------------------------------------------------------------------------------------------------
-  //not used
-  stepFunction(x) {
-    if (x < 0) {
-      return 0;
-    } else {
-      return 1;
-    }
+
+  mutateBias() {
+    //Randomly mutate the bias of this node
+    let rand = Math.random();
+    if (rand < 0.05)
+      //5% chance of being assigned a new random value
+      this.bias = Math.random() * 2 - 1;
+    //95% chance of being uniformly perturbed
+    else this.bias += p5.prototype.randomGaussian() / 50;
   }
-  //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-  //sigmoid activation function
-  sigmoid(x) {
-    // return 1.0 / (1.0 + pow(Math.E, -4.9 * x)); //todo check pow
-    return 1 / (1 + Math.exp(-x)); // Sigmoid function in pure javascript: https://github.com/howion/activation-functions/blob/master/lib/index.js
+
+  mutateActivation() {
+    //Randomly choose a new activationFunction
+    this.activationFunction = Math.floor(Math.random() * 5); //Number between 0 and 4
   }
-  //----------------------------------------------------------------------------------------------------------------------------------------------------------
-  //returns whether this node connected to the parameter node
-  //used when adding a new connection
+
   isConnectedTo(node) {
-    if (node.layer == this.layer) {
-      //nodes in the same this.layer cannot be connected
+    //Check if two nodes are connected
+    if (node.layer == this.layer)
+      //nodes in the same layer cannot be connected
       return false;
-    }
 
-    //you get it
     if (node.layer < this.layer) {
-      for (var i = 0; i < node.outputConnections.length; i++) {
-        if (node.outputConnections[i].toNode == this) {
+      //Check parameter node connections
+      node.outputConnections.forEach((conn) => {
+        if (conn.toNode == this)
+          //Is Node connected to This?
           return true;
-        }
-      }
+      });
     } else {
-      for (var i = 0; i < this.outputConnections.length; i++) {
-        if (this.outputConnections[i].toNode == node) {
+      //Check this node connections
+      this.outputConnections.forEach((conn) => {
+        if (conn.toNode == node)
+          //Is This connected to Node?
           return true;
-        }
-      }
+      });
     }
 
     return false;
   }
-  //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-  //returns a copy of this node
+
   clone() {
-    var clone = new Node(this.number);
-    clone.layer = this.layer;
-    return clone;
+    //Returns a copy of this node
+    let node = new Node(this.number, this.layer, this.output);
+    node.bias = this.bias; //Same bias
+    node.activationFunction = this.activationFunction; //Same activationFunction
+    return node;
+  }
+
+  activation(x) {
+    //All the possible activation Functions
+    switch (this.activationFunction) {
+      case 0: //Sigmoid
+        return 1 / (1 + Math.pow(Math.E, -4.9 * x));
+        break;
+      case 1: //Identity
+        return x;
+        break;
+      case 2: //Step
+        return x > 0 ? 1 : 0;
+        break;
+      case 3: //Tanh
+        return Math.tanh(x);
+        break;
+      case 4: //ReLu
+        return x < 0 ? 0 : x;
+        break;
+      default:
+        //Sigmoid
+        return 1 / (1 + Math.pow(Math.E, -4.9 * x));
+        break;
+    }
   }
 }

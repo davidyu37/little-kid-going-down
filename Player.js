@@ -155,8 +155,27 @@ class Player {
     }
   }
 
+  clone() {
+    //Returns a copy of this player
+    let clone = new Player();
+    clone.brain = this.brain.clone();
+    return clone;
+  }
+
+  crossover(parent) {
+    //Produce a child
+    let child = new Player();
+    if (parent.fitness < this.fitness)
+      child.brain = this.brain.crossover(parent.brain);
+    else child.brain = parent.brain.crossover(this.brain);
+
+    child.brain.mutate();
+    return child;
+  }
+
   calculateFitness() {
-    this.fitness = 1 + this.score * this.score + this.player.life / 20.0;
+    this.fitness = this.score;
+    this.fitness /= this.brain.calculateWeight();
   }
 
   checkNailCeiling() {
@@ -186,17 +205,6 @@ class Player {
 
       // gameOver();
     }
-  }
-
-  clone() {
-    var clone = new Player();
-    clone.brain = this.brain.clone();
-    clone.fitness = this.fitness;
-    clone.brain.generateNetwork();
-    clone.gen = this.gen;
-    clone.bestScore = this.score;
-
-    return clone;
   }
 
   stopMoving() {
@@ -307,7 +315,7 @@ class Player {
         platform.body.checkCollision.up = false;
         setTimeout(() => {
           platform.body.checkCollision.up = true;
-        }, 1000);
+        }, 200);
       }, 100);
       player.touchOn = platform;
     }
