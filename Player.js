@@ -1,7 +1,10 @@
+let numOfPlayers = 0;
 class Player {
   constructor(familyName, gen) {
     this.familyName = familyName;
     this.gen = gen;
+
+    numOfPlayers++;
 
     const player = game.add.sprite(gameWidth / 2, 50, "player");
 
@@ -86,6 +89,8 @@ class Player {
       this.updatePlayer();
       this.checkNailCeiling();
       this.checkFellPlayer();
+    } else {
+      this.destroy();
     }
   }
 
@@ -429,5 +434,9 @@ class Player {
     if (platform.key == "fake") {
       this.fakeEffect(player, platform);
     }
+  }
+
+  destroy() {
+    this.player.destroy();
   }
 }

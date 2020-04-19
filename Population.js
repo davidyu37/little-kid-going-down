@@ -28,11 +28,11 @@ class Population {
       }
     }
 
-    if (showBest && this.bestPlayer && !this.bestPlayer.dead) {
-      this.bestPlayer.look();
-      this.bestPlayer.think();
-      this.bestPlayer.update();
-    }
+    // if (showBest && this.bestPlayer && !this.bestPlayer.dead) {
+    //   this.bestPlayer.look();
+    //   this.bestPlayer.think();
+    //   this.bestPlayer.update();
+    // }
   }
 
   done() {
@@ -47,14 +47,8 @@ class Population {
 
   naturalSelection() {
     this.calculateFitness();
-
     let averageSum = this.getAverageScore();
-    console.log(averageSum);
     let children = [];
-
-    this.players.forEach((element) => {
-      element.upAGeneration();
-    });
 
     this.fillMatingPool();
     for (let i = 0; i < this.players.length; i++) {
@@ -75,7 +69,6 @@ class Population {
     console.log("Generation " + this.generation);
 
     generation.innerHTML = this.generation;
-    //console.log(this);
 
     this.bestPlayer.lifespan = 0;
     this.bestPlayer.dead = false;
