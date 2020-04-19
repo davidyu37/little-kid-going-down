@@ -9,7 +9,7 @@ class Population {
     this.matingPool = [];
 
     for (let i = 0; i < size; i++) {
-      this.players.push(new Player());
+      this.players.push(new Player(FamilyNames[i], this.generation));
       this.players[i].brain.generateNetwork();
       this.players[i].brain.mutate();
     }
@@ -51,6 +51,10 @@ class Population {
     let averageSum = this.getAverageScore();
     console.log(averageSum);
     let children = [];
+
+    this.players.forEach((element) => {
+      element.upAGeneration();
+    });
 
     this.fillMatingPool();
     for (let i = 0; i < this.players.length; i++) {

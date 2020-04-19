@@ -1,6 +1,10 @@
 class Player {
-  constructor() {
+  constructor(familyName, gen) {
+    this.familyName = familyName;
+    this.gen = gen;
+
     const player = game.add.sprite(gameWidth / 2, 50, "player");
+
     player.scale.setTo(scale, scale);
     player.direction = 10;
     game.physics.arcade.enable(player);
@@ -13,8 +17,35 @@ class Player {
     player.life = 10;
     player.unbeatableTime = 0;
     player.touchOn = undefined;
-
     this.player = player;
+
+    const healthBar = new Phaser.Text(
+      game,
+      3,
+      -30,
+      this.generateHealthBar(player.life),
+      {
+        fontSize: 12,
+        fontWeight: "thin",
+        align: "center",
+        fill: "yellow",
+      }
+    );
+
+    this.healthBar = healthBar;
+
+    this.player.addChild(this.healthBar);
+
+    // const childName = this.familyName + " " + this.romanize(this.gen);
+    const name = new Phaser.Text(game, 3, -15, this.familyName, {
+      fontSize: 12,
+      fontWeight: "thin",
+      align: "center",
+      fill: "white",
+    });
+
+    this.player.addChild(name);
+
     this.fitness = 0;
     this.vision = []; //the input array fed into the neuralNet
     this.decision = []; //the out put of the NN
@@ -23,13 +54,23 @@ class Player {
     this.unadjustedFitness;
     this.lifespan = 0; //how long the player lived for this.fitness
     this.bestScore = 0; //stores the this.score achieved used for replay
-    this.gen = 0;
 
     this.moveState = 0; // 0 = not moving, 1 = move left, 2 = move right
 
     this.genomeInputs = 5;
     this.genomeOutputs = 3;
     this.brain = new Genome(this.genomeInputs, this.genomeOutputs);
+  }
+
+  generateHealthBar(number) {
+    if (number <= 0) {
+      return "";
+    }
+    let text = "";
+    for (let index = 1; index <= number; index++) {
+      text += "|";
+    }
+    return text;
   }
 
   update() {
@@ -157,14 +198,55 @@ class Player {
 
   clone() {
     //Returns a copy of this player
-    let clone = new Player();
+    let clone = new Player(this.familyName, this.gen);
     clone.brain = this.brain.clone();
     return clone;
   }
 
+  romanize(num) {
+    if (isNaN(num)) return NaN;
+    var digits = String(+num).split(""),
+      key = [
+        "",
+        "C",
+        "CC",
+        "CCC",
+        "CD",
+        "D",
+        "DC",
+        "DCC",
+        "DCCC",
+        "CM",
+        "",
+        "X",
+        "XX",
+        "XXX",
+        "XL",
+        "L",
+        "LX",
+        "LXX",
+        "LXXX",
+        "XC",
+        "",
+        "I",
+        "II",
+        "III",
+        "IV",
+        "V",
+        "VI",
+        "VII",
+        "VIII",
+        "IX",
+      ],
+      roman = "",
+      i = 3;
+    while (i--) roman = (key[+digits.pop() + i * 10] || "") + roman;
+    return Array(+digits.join("") + 1).join("M") + roman;
+  }
+
   crossover(parent) {
     //Produce a child
-    let child = new Player();
+    let child = new Player(this.familyName, this.gen);
     if (parent.fitness < this.fitness)
       child.brain = this.brain.crossover(parent.brain);
     else child.brain = parent.brain.crossover(this.brain);
@@ -178,6 +260,10 @@ class Player {
     this.fitness /= this.brain.calculateWeight();
   }
 
+  upAGeneration() {
+    this.gen++;
+  }
+
   checkNailCeiling() {
     if (this.player.body.y < 35) {
       if (this.player.body.velocity.y < 0) {
@@ -187,6 +273,7 @@ class Player {
       if (game.time.now > this.player.unbeatableTime) {
         stabbedSound.play();
         this.player.life -= 3;
+        this.healthBar.text = this.generateHealthBar(this.player.life);
         game.camera.flash(0xff0000, 100);
         this.player.unbeatableTime = game.time.now + 1000;
         if (this.player.life <= 0 && !this.dead) {
@@ -283,6 +370,7 @@ class Player {
         stabbedSound.play();
       }
       player.life -= 3;
+      this.healthBar.text = this.generateHealthBar(player.life);
       player.touchOn = platform;
       game.camera.flash(0xff0000, 100);
       if (player.life <= 0 && !this.dead) {
