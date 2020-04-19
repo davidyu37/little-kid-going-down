@@ -114,19 +114,34 @@ class Player {
     // Things the AI will "see"
     // player's x position
     // player's y position
-    // most bottom platform's x position
-    // most bottom platform's y position
-    // most bottom platform's x position + platform's width
+    // closest platform's x position
+    // closest platform's y position
+    // closest platform's x position + platform's width
     let { x: playerX, y: playerY } = this.player;
-    const freshPlatform = platforms[platforms.length - 1];
+
+    let closestPlatform,
+      closestDist = gameHeight;
+
+    // Find the closest platform
+    for (let index = 0; index < platforms.length; index++) {
+      const distToPlayer = platforms[index].y - playerY;
+      if (distToPlayer <= 0) {
+        continue;
+      }
+      if (distToPlayer < closestDist) {
+        closestDist = distToPlayer;
+        closestPlatform = platforms[index];
+      }
+    }
+    // const freshPlatform = platforms[platforms.length - 1];
 
     // If no platform appears yet, use these values
     let platformX = gameWidth / 2,
       platformY = gameHeight,
       platformEnd = platformX + 192;
 
-    if (freshPlatform) {
-      const { x, y, width } = freshPlatform;
+    if (closestPlatform) {
+      const { x, y, width } = closestPlatform;
 
       platformX = x;
       platformY = y;
