@@ -33,11 +33,14 @@ let conveyorSound,
   stabbedScream;
 
 // Genetic Algothrithm Stuff
-let population;
+let population,
+  recordScore = 0;
 
 // Scoreboard elements
 const lifeBar = document.getElementById("life-bar");
 const score = document.getElementById("score");
+const generation = document.getElementById("generation");
+const record = document.getElementById("record");
 
 function preload() {
   game.load.baseURL = "./assets/";
@@ -172,6 +175,10 @@ function createPlatforms() {
     lastTime = game.time.now;
     createOnePlatform();
     distance += 1;
+    if (recordScore < distance) {
+      recordScore = distance;
+      record.innerHTML = recordScore;
+    }
     score.innerHTML = distance;
   }
 }

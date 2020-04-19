@@ -69,6 +69,8 @@ class Population {
     });
 
     console.log("Generation " + this.generation);
+
+    generation.innerHTML = this.generation;
     //console.log(this);
 
     this.bestPlayer.lifespan = 0;
@@ -84,6 +86,8 @@ class Population {
         this.bestFitness = element.fitness;
         this.bestPlayer = element.clone();
         this.bestPlayer.brain.id = "BestGenome";
+
+        // console.log("best player", this.bestPlayer);
         // this.bestPlayer.brain.draw();
       }
 
