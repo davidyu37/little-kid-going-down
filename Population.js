@@ -59,6 +59,10 @@ class Population {
       else children.push(parent2.crossover(parent1));
     }
 
+    this.players.forEach((element) => {
+      element.destroy();
+    });
+
     this.players.splice(0, this.players.length);
     this.players = children.slice(0);
     this.generation++;
