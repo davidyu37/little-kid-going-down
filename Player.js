@@ -11,7 +11,7 @@ class Player {
     player.scale.setTo(scale, scale);
     player.direction = 10;
     game.physics.arcade.enable(player);
-    player.body.gravity.y = 800;
+    player.body.gravity.y = gameHeight;
     player.animations.add("left", [0, 1, 2, 3], 8);
     player.animations.add("right", [9, 10, 11, 12], 8);
     player.animations.add("flyleft", [18, 19, 20, 21], 12);
@@ -59,8 +59,8 @@ class Player {
     this.bestScore = 0; //stores the this.score achieved used for replay
 
     this.moveState = 0; // 0 = not moving, 1 = move left, 2 = move right
-
-    this.genomeInputs = 5;
+    // Inputs for vision, Outputs for actions
+    this.genomeInputs = 6;
     this.genomeOutputs = 3;
     this.brain = new Genome(this.genomeInputs, this.genomeOutputs);
   }
@@ -117,7 +117,17 @@ class Player {
     // closest platform's x position
     // closest platform's y position
     // closest platform's x position + platform's width
+    // platform type
     let { x: playerX, y: playerY } = this.player;
+
+    const platformCode = {
+      normal: 1,
+      nails: 2,
+      conveyorLeft: 3,
+      conveyorRight: 4,
+      trampoline: 5,
+      fake: 6,
+    };
 
     let closestPlatform,
       closestDist = gameHeight;
@@ -138,10 +148,13 @@ class Player {
     // If no platform appears yet, use these values
     let platformX = gameWidth / 2,
       platformY = gameHeight,
-      platformEnd = platformX + 192;
+      platformEnd = platformX + 192,
+      platformType = 0;
 
     if (closestPlatform) {
       const { x, y, width } = closestPlatform;
+
+      platformType = platformCode[closestPlatform.platformType];
 
       platformX = x;
       platformY = y;
@@ -154,10 +167,16 @@ class Player {
     platformEnd = this.normalize(platformEnd, gameWidth);
     playerX = this.normalize(playerX, gameWidth);
     playerY = this.normalize(playerY, gameHeight);
+    platformType = this.normalize(platformType, 6);
 
-    this.vision.push(playerX, playerY, platformX, platformY, platformEnd);
-
-    // console.log(this.vision);
+    this.vision.push(
+      playerX,
+      playerY,
+      platformX,
+      platformY,
+      platformEnd,
+      platformType
+    );
   }
 
   think() {
@@ -184,7 +203,7 @@ class Player {
       }
     }
 
-    if (max < 0.6) {
+    if (max < 0.8) {
       // Stop
       return;
       // this.stopMoving();
@@ -200,16 +219,16 @@ class Player {
         this.moveState = 0;
         break;
       case 1:
-        if (this.moveState == 1) {
-          return;
-        }
+        // if (this.moveState == 1) {
+        //   return;
+        // }
         this.goLeft();
         this.moveState = 1;
         break;
       case 2:
-        if (this.moveState == 2) {
-          return;
-        }
+        // if (this.moveState == 2) {
+        //   return;
+        // }
         this.goRight();
         this.moveState = 2;
         break;
@@ -276,7 +295,8 @@ class Player {
   }
 
   calculateFitness() {
-    this.fitness = this.score;
+    // Add player's life before death as bonus points
+    this.fitness = this.score + this.player.life;
     this.fitness /= this.brain.calculateWeight();
   }
 
@@ -319,15 +339,16 @@ class Player {
   }
 
   goLeft() {
-    this.player.body.velocity.x = -250;
+    this.player.body.velocity.x = -(gameWidth / 3.2);
   }
 
   goRight() {
-    this.player.body.velocity.x = 250;
+    this.player.body.velocity.x = gameWidth / 3.2;
   }
 
   updatePlayer() {
     this.setPlayerAnimate(this.player);
+    this.healthBar.text = this.generateHealthBar(this.player.life);
   }
 
   setPlayerAnimate(player) {
@@ -360,6 +381,9 @@ class Player {
         conveyorSound.play();
       }
       player.touchOn = platform;
+      if (player.life < 10) {
+        player.life += 1;
+      }
     }
     player.body.x += 2;
   }
@@ -368,6 +392,9 @@ class Player {
     if (player.touchOn !== platform) {
       conveyorSound.play();
       player.touchOn = platform;
+      if (player.life < 10) {
+        player.life += 1;
+      }
     }
     player.body.x -= 2;
   }
@@ -378,8 +405,12 @@ class Player {
       springSound.play();
     }
 
+    if (player.life < 10) {
+      player.life += 1;
+    }
+
     platform.animations.play("jump");
-    player.body.velocity.y = -350;
+    player.body.velocity.y = -(gameHeight / 2);
   }
 
   nailsEffect(player, platform) {
@@ -390,7 +421,7 @@ class Player {
         stabbedSound.play();
       }
       player.life -= 3;
-      this.healthBar.text = this.generateHealthBar(player.life);
+
       player.touchOn = platform;
       game.camera.flash(0xff0000, 100);
       if (player.life <= 0 && !this.dead) {
@@ -426,6 +457,9 @@ class Player {
         }, 200);
       }, 100);
       player.touchOn = platform;
+      if (player.life < 10) {
+        player.life += 1;
+      }
     }
   }
 

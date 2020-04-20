@@ -171,15 +171,31 @@ function createBounders() {
 
 var lastTime = 0;
 function createPlatforms() {
-  if (game.time.now > lastTime + 1000) {
-    lastTime = game.time.now;
-    createOnePlatform();
-    distance += 1;
-    if (recordScore < distance) {
-      recordScore = distance;
-      record.innerHTML = recordScore;
+  // console.log(platforms);
+  // Find the last platform created and keep distance
+  const lastPlatform = platforms[platforms.length - 1];
+  if (lastPlatform) {
+    const { y } = lastPlatform;
+
+    const movedBy = gameHeight - y;
+    if (movedBy > 100) {
+      updateDistance();
     }
-    score.innerHTML = distance;
+
+    return;
+  }
+
+  updateDistance();
+}
+
+function updateDistance() {
+  createOnePlatform();
+  distance += 1;
+  score.innerHTML = distance;
+
+  if (recordScore < distance) {
+    recordScore = distance;
+    record.innerHTML = recordScore;
   }
 }
 
@@ -191,24 +207,24 @@ function createOnePlatform() {
 
   let platformType = "normal";
 
-  if (rand < 20) {
+  if (rand < 50) {
     platform = game.add.sprite(x, y, "normal");
-  } else if (rand < 40) {
+  } else if (rand < 60) {
     platform = game.add.sprite(x, y, "nails");
     platformType = "nails";
     game.physics.arcade.enable(platform);
     platform.body.setSize(96, 15, 0, 15);
-  } else if (rand < 50) {
+  } else if (rand < 70) {
     platform = game.add.sprite(x, y, "conveyorLeft");
     platformType = "conveyorLeft";
     platform.animations.add("scroll", [0, 1, 2, 3], 16, true);
     platform.play("scroll");
-  } else if (rand < 60) {
+  } else if (rand < 80) {
     platform = game.add.sprite(x, y, "conveyorRight");
     platformType = "conveyorRight";
     platform.animations.add("scroll", [0, 1, 2, 3], 16, true);
     platform.play("scroll");
-  } else if (rand < 80) {
+  } else if (rand < 90) {
     platform = game.add.sprite(x, y, "trampoline");
     platformType = "trampoline";
     platform.animations.add("jump", [4, 5, 4, 3, 2, 1, 0, 1, 2, 3], 120);
@@ -235,6 +251,7 @@ function createOnePlatform() {
   platform.body.checkCollision.down = false;
   platform.body.checkCollision.left = false;
   platform.body.checkCollision.right = false;
+  platform.platformType = platformType;
 
   platforms.push(platform);
 }
