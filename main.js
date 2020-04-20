@@ -169,20 +169,25 @@ function createBounders() {
 
 var lastTime = 0;
 function createPlatforms() {
-  if (game.time.now > lastTime + 1000) {
-    lastTime = game.time.now;
-    createOnePlatform();
-    distance += 1;
-    score.innerHTML = distance;
-  }
-}
+  // console.log(platforms);
+  // Find the last platform created and keep distance
+  const lastPlatform = platforms[platforms.length - 1];
+  if (lastPlatform) {
+    const { y } = lastPlatform;
 
-function uuidv4() {
-  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function (c) {
-    var r = (Math.random() * 16) | 0,
-      v = c == "x" ? r : (r & 0x3) | 0x8;
-    return v.toString(16);
-  });
+    const movedBy = gameHeight - y;
+    if (movedBy > 100) {
+      createOnePlatform();
+      distance += 1;
+      score.innerHTML = distance;
+    }
+
+    return;
+  }
+
+  createOnePlatform();
+  distance += 1;
+  score.innerHTML = distance;
 }
 
 function createOnePlatform() {
@@ -193,24 +198,24 @@ function createOnePlatform() {
 
   let platformType = "normal";
 
-  if (rand < 20) {
+  if (rand < 50) {
     platform = game.add.sprite(x, y, "normal");
-  } else if (rand < 40) {
+  } else if (rand < 60) {
     platform = game.add.sprite(x, y, "nails");
     platformType = "nails";
     game.physics.arcade.enable(platform);
     platform.body.setSize(96, 15, 0, 15);
-  } else if (rand < 50) {
+  } else if (rand < 70) {
     platform = game.add.sprite(x, y, "conveyorLeft");
     platformType = "conveyorLeft";
     platform.animations.add("scroll", [0, 1, 2, 3], 16, true);
     platform.play("scroll");
-  } else if (rand < 60) {
+  } else if (rand < 80) {
     platform = game.add.sprite(x, y, "conveyorRight");
     platformType = "conveyorRight";
     platform.animations.add("scroll", [0, 1, 2, 3], 16, true);
     platform.play("scroll");
-  } else if (rand < 80) {
+  } else if (rand < 90) {
     platform = game.add.sprite(x, y, "trampoline");
     platformType = "trampoline";
     platform.animations.add("jump", [4, 5, 4, 3, 2, 1, 0, 1, 2, 3], 120);
@@ -238,9 +243,6 @@ function createOnePlatform() {
   platform.body.checkCollision.left = false;
   platform.body.checkCollision.right = false;
 
-  // Assign uuid to each platform
-  platform.uuid = uuidv4();
-
   platforms.push(platform);
 }
 
@@ -249,7 +251,7 @@ function createPlayer() {
   player.scale.setTo(scale, scale);
   player.direction = 10;
   game.physics.arcade.enable(player);
-  player.body.gravity.y = 800;
+  player.body.gravity.y = gameHeight;
   player.animations.add("left", [0, 1, 2, 3], 8);
   player.animations.add("right", [9, 10, 11, 12], 8);
   player.animations.add("flyleft", [18, 19, 20, 21], 12);
@@ -275,9 +277,9 @@ function createTextsBoard() {
 
 function updatePlayer() {
   if (keyboard.left.isDown) {
-    player.body.velocity.x = -250;
+    player.body.velocity.x = -(gameWidth / 3.2);
   } else if (keyboard.right.isDown) {
-    player.body.velocity.x = 250;
+    player.body.velocity.x = gameWidth / 3.2;
   } else {
     player.body.velocity.x = 0;
   }
@@ -343,7 +345,6 @@ function effect(player, platform) {
   if (platform.key == "fake") {
     fakeEffect(player, platform);
   }
-  currentPlatform = platform.uuid;
 }
 
 function conveyorRightEffect(player, platform) {
@@ -352,6 +353,9 @@ function conveyorRightEffect(player, platform) {
       conveyorSound.play();
     }
     player.touchOn = platform;
+    if (player.life < 10) {
+      player.life += 1;
+    }
   }
   player.body.x += 2;
 }
@@ -360,6 +364,9 @@ function conveyorLeftEffect(player, platform) {
   if (player.touchOn !== platform) {
     conveyorSound.play();
     player.touchOn = platform;
+    if (player.life < 10) {
+      player.life += 1;
+    }
   }
   player.body.x -= 2;
 }
@@ -369,9 +376,12 @@ function trampolineEffect(player, platform) {
   if (!springSound.isPlaying) {
     springSound.play();
   }
+  if (player.life < 10) {
+    player.life += 1;
+  }
 
   platform.animations.play("jump");
-  player.body.velocity.y = -350;
+  player.body.velocity.y = -(gameHeight / 2);
 }
 
 function nailsEffect(player, platform) {
@@ -411,6 +421,9 @@ function basicEffect(player, platform) {
 function fakeEffect(player, platform) {
   if (player.body.y > platform.body.y) return;
   if (player.touchOn !== platform) {
+    if (player.life < 10) {
+      player.life += 1;
+    }
     if (!spinSound.isPlaying) {
       spinSound.play();
     }
