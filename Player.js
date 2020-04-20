@@ -60,7 +60,7 @@ class Player {
 
     this.moveState = 0; // 0 = not moving, 1 = move left, 2 = move right
     // Inputs for vision, Outputs for actions
-    this.genomeInputs = 6;
+    this.genomeInputs = 5;
     this.genomeOutputs = 3;
     this.brain = new Genome(this.genomeInputs, this.genomeOutputs);
   }
@@ -112,21 +112,21 @@ class Player {
   look() {
     this.vision = [];
     // Things the AI will "see"
-    // player's x position
     // player's y position
-    // closest platform's x position
     // closest platform's y position
-    // closest platform's x position + platform's width
+    // distance to closest platform's left edge
+    // disntace to closest platform's right edge
     // platform type
     let { x: playerX, y: playerY } = this.player;
 
+    // Only distinguish dangerous one and safe one
     const platformCode = {
-      normal: 1,
-      nails: 2,
-      conveyorLeft: 3,
-      conveyorRight: 4,
-      trampoline: 5,
-      fake: 6,
+      normal: 0,
+      nails: 1,
+      conveyorLeft: 0,
+      conveyorRight: 0,
+      trampoline: 0,
+      fake: 0,
     };
 
     let closestPlatform,
@@ -143,38 +143,36 @@ class Player {
         closestPlatform = platforms[index];
       }
     }
-    // const freshPlatform = platforms[platforms.length - 1];
 
     // If no platform appears yet, use these values
-    let platformX = gameWidth / 2,
-      platformY = gameHeight,
-      platformEnd = platformX + 192,
+    let platformY = gameHeight,
+      distToPlatformLeftEdge = 0,
+      distToPlatformRightEdge = 0,
       platformType = 0;
 
     if (closestPlatform) {
       const { x, y, width } = closestPlatform;
-
-      platformType = platformCode[closestPlatform.platformType];
-
-      platformX = x;
       platformY = y;
-      platformEnd = x + width;
+
+      distToPlatformLeftEdge = x - playerX;
+      distToPlatformRightEdge = x + width - playerX;
+      platformType = platformCode[closestPlatform.platformType];
     }
 
     // Normalize data
-    platformX = this.normalize(platformX, gameWidth);
-    platformY = this.normalize(platformY, gameHeight);
-    platformEnd = this.normalize(platformEnd, gameWidth);
-    playerX = this.normalize(playerX, gameWidth);
     playerY = this.normalize(playerY, gameHeight);
-    platformType = this.normalize(platformType, 6);
+    platformY = this.normalize(platformY, gameHeight);
+    distToPlatformLeftEdge = this.normalize(distToPlatformLeftEdge, gameWidth);
+    distToPlatformRightEdge = this.normalize(
+      distToPlatformRightEdge,
+      gameWidth
+    );
 
     this.vision.push(
-      playerX,
       playerY,
-      platformX,
       platformY,
-      platformEnd,
+      distToPlatformLeftEdge,
+      distToPlatformRightEdge,
       platformType
     );
   }
@@ -296,7 +294,8 @@ class Player {
 
   calculateFitness() {
     // Add player's life before death as bonus points
-    this.fitness = this.score + this.player.life;
+
+    this.fitness = 1 + this.score * this.score + this.player.life / 10;
     this.fitness /= this.brain.calculateWeight();
   }
 
